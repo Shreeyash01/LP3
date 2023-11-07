@@ -1,4 +1,5 @@
-pragma solidity ^0.6;
+// SPDX-License-Identifier: UNLICENSED 
+pragma solidity ^0.8.0;
 
 contract Student_management {
     struct Student {
@@ -28,4 +29,11 @@ contract Student_management {
         }
         return ("Not Found", "Not Found");
     }
+
+    // fallback() external payable {
+    //     // Fallback function to accept Ether
+    //     // It can be left empty or customized based on contract requirements
+    // }
 }
+
+
