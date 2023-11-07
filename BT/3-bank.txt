@@ -1,78 +1,45 @@
-pragma solidity ^0.6;
+// SPDX-License-Identifier: UNLICENSED 
+pragma solidity ^0.8.0;
 
-contract banking {
-    mapping(address => uint) public user_account;
-    mapping(address => bool) public user_exists;
+contract Bank {
+    mapping(address => uint) public balances;
+    mapping(address => bool) public accountExists;
 
-    function create_account() public payable returns (string memory) {
-        require(user_exists[msg.sender] == false, "Account already created");
-        if (msg.value == 0) {
-            user_account[msg.sender] = 0;
-            user_exists[msg.sender] = true;
-            return "Account created";
-        }
-        require(user_exists[msg.sender] == false, "Account already created");
-        user_account[msg.sender] = msg.value;
-
-        user_exists[msg.sender] = true;
-        return "Account created";
+    function createAccount() public {
+        require(!accountExists[msg.sender], "Account already exists");
+        accountExists[msg.sender] = true;
     }
 
-    function deposit() public payable returns (string memory) {
-        require(user_exists[msg.sender] == true, "Account not created");
-        require(msg.value > 0, "Value for deposit is Zero");
-        user_account[msg.sender] = user_account[msg.sender] + msg.value;
-        return "Deposited Successfully";
+    function deposit() public payable {
+        require(accountExists[msg.sender], "Account does not exist");
+        require(msg.value > 0, "Deposit value should be greater than zero");
+        balances[msg.sender] += msg.value;
     }
 
-    function withdraw(uint amount) public payable returns (string memory) {
-        require(user_account[msg.sender] > amount, "Insufficient Balance");
-        require(user_exists[msg.sender] == true, "Account not created");
-        require(amount > 0, "Amount should be more than zero");
-        user_account[msg.sender] = user_account[msg.sender] - amount;
-        msg.sender.transfer(amount);
-        return "Withdrawl Successful";
+    function withdraw(uint amount) public {
+        require(accountExists[msg.sender], "Account does not exist");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        require(amount > 0, "Withdrawal amount should be greater than zero");
+
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
     }
 
-    function transfer(
-        address payable userAddress,
-        uint amount
-    ) public returns (string memory) {
-        require(
-            user_account[msg.sender] > amount,
-            "Insufficient balance in Bank account"
-        );
-        require(user_exists[msg.sender] == true, "Account is not created");
-        require(
-            user_exists[userAddress] == true,
-            "Transfer account does not exist"
-        );
-        require(amount > 0, "Amount should be more than zero");
-        user_account[msg.sender] = user_account[msg.sender] - amount;
-        user_account[userAddress] = user_account[userAddress] + amount;
-        return "Transfer Successful";
+    function showBalance() public view returns (uint) {
+        return balances[msg.sender];
     }
 
-    function send_amt(
-        address payable toAddress,
-        uint256 amount
-    ) public payable returns (string memory) {
-        require(
-            user_account[msg.sender] > amount,
-            "Insufficeint balance in Bank account"
-        );
-        require(user_exists[msg.sender] == true, "Account is not created");
-        require(amount > 0, "Amount should be more than zero");
-        user_account[msg.sender] = user_account[msg.sender] - amount;
-        toAddress.transfer(amount);
-        return "Transfer Success";
+    function transfer(address to, uint amount) public {
+        require(accountExists[msg.sender], "Sender account does not exist");
+        require(accountExists[to], "Receiver account does not exist");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        require(amount > 0, "Transfer amount should be greater than zero");
+
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
     }
 
-    function user_balance() public view returns (uint) {
-        return user_account[msg.sender];
-    }
-
-    function account_exist() public view returns (bool) {
-        return user_exists[msg.sender];
+    function accountExist() public view returns (bool) {
+        return accountExists[msg.sender];
     }
 }
